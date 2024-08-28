@@ -49,6 +49,9 @@ library LibDeploy {
 		IComponent comp;
 
 		console.log("Deploying ValueComponent");
+		// NOTE: fails here
+		// unlikely to do with read/writes - seems to have issues calling World contract
+		// flow in World constructor and init() works, but not individual components
 		comp = new ValueComponent(address(result.world));
 		// console.log(address(comp));
 
