@@ -1,6 +1,16 @@
 [profile.default]
-src = "src"
+ffi = false
+fuzz_runs = 256
+libs = ["../../node_modules", "node_modules", "lib"]
+optimizer = true
+optimizer_runs = 1000000
 out = "out"
-libs = ["lib"]
+solc = "0.8.20"
+src = "src"
+verbosity = 1
+gas_reports = ["*"]
+memory_limit = 43554432
+tab_width = 2
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[rpc_endpoints]
+initia = "${INITIA_RPC}"

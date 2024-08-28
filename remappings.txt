@@ -1,0 +1,10 @@
+solecs/=src/solecs
+
+components/=src/components
+deployment/=src/deployment/contracts
+libraries/=src/libraries
+systems/=src/systems
+test/=src/test
+
+openzeppelin/=lib/openzeppelin-contracts/contracts/
+@solidstate/=lib/solidstate-solidity/
