@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
-import "solecs/BareComponent.sol";
+import "solecs/Component.sol";
 import { TypeLib } from "components/types/standard.sol";
 
-/**
- * Reference implementation of a component storing a uint256 value for each entity.
- */
-contract Uint256BareComponent is BareComponent {
-  constructor(address world, uint256 id) BareComponent(world, id) {}
+contract Uint256Component is Component {
+  constructor(address world, uint256 id) Component(world, id) {}
 
   function set(uint256 entity, uint256 value) external virtual onlyWriter {
     _set(entity, TypeLib.encodeUint256(value));
@@ -36,5 +33,9 @@ contract Uint256BareComponent is BareComponent {
 
   function getBatch(uint256[] memory entities) external view virtual returns (uint256[] memory) {
     return TypeLib.decodeBatchUint256(_getRawBatch(entities));
+  }
+
+  function getEntitiesWithValue(uint256 value) external view virtual returns (uint256[] memory) {
+    return _getEntitiesWithValue(TypeLib.encodeUint256(value));
   }
 }

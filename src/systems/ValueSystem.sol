@@ -5,6 +5,8 @@ import { System } from "solecs/System.sol";
 import { IWorld } from "solecs/interfaces/IWorld.sol";
 import { getAddressById } from "solecs/utils.sol";
 
+import { LibPack } from "libraries/LibPack.sol";
+
 import { ValueComponent, ID as ValueCompID } from "components/ValueComponent.sol";
 
 uint256 constant ID = uint256(keccak256("system.value"));
@@ -20,5 +22,9 @@ contract ValueSystem is System {
 
 	function executeTyped(uint256 val) public returns (bytes memory) {
 		return execute(abi.encode(val));
+	}
+
+	function fixedArray(uint32[8] memory values) public {
+		ValueComponent(getAddressById(components, ValueCompID)).set(1, LibPack.packArrU32(values));
 	}
 }

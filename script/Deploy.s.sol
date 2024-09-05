@@ -20,7 +20,7 @@ contract Deploy is Script {
 		address deployer = address(uint160(uint256(keccak256(abi.encodePacked(vm.envUint("TEST_DEPLOYER_PRIV"))))));
 		vm.startBroadcast(vm.envUint("TEST_DEPLOYER_PRIV"));
 
-		DeployResult memory result = LibDeploy.deploy(deployer, address(0));
+		DeployResult memory result = LibDeploy.deploy(deployer);
 		world = result.world;
 
 		console.log("Deployed world at", address(world));
@@ -34,7 +34,7 @@ struct DeployResult {
 }
 
 library LibDeploy {
-	function deploy(address _deployer, address _world) internal returns (DeployResult memory result) {
+	function deploy(address _deployer) internal returns (DeployResult memory result) {
 		result.deployer = _deployer;
 
 		// ------------------------
@@ -42,20 +42,17 @@ library LibDeploy {
 		// ------------------------
 
 		// Deploy world
-		result.world = _world == address(0) ? new World() : World(_world);
-		if (_world == address(0)) result.world.init(); // Init if it's a fresh world
+		result.world = new World();
+		result.world.init(); // Init if it's a fresh world
 
 		// Deploy components
 		IComponent comp;
 
 		console.log("Deploying ValueComponent");
-		// NOTE: fails here
-		// unlikely to do with read/writes - seems to have issues calling World contract
-		// flow in World constructor and init() works, but not individual components
 		comp = new ValueComponent(address(result.world));
-		// console.log(address(comp));
+		console.log(address(comp));
 
-		// deploySystems(address(result.world), true);
+		deploySystems(address(result.world), true);
 	}
 
 	function authorizeWriter(IUint256Component components, uint256 componentId, address writer) internal {
@@ -78,5 +75,10 @@ library LibDeploy {
 		world.registerSystem(address(system), ValueSystemID);
 		authorizeWriter(components, ValueComponentID, address(system));
 		console.log(address(system));
+
+		// writing array
+		ValueSystem(address(system)).fixedArray([uint32(0), 0, 1003, 4, 5, 0, 0, 0]);
+		// NOTE: fails on second one
+		ValueSystem(address(system)).fixedArray([uint32(0), 0, 1003, 4, 5, 0, 0, 0]);
 	}
 }

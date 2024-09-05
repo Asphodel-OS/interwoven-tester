@@ -21,6 +21,10 @@ uint256 constant ID = uint256(keccak256("world.system.register"));
 contract RegisterSystem is System {
 	constructor(IWorld _world, address _components) System(_world, _components) {}
 
+	function requirement(bytes memory args) public view returns (bytes memory) {
+		// TODO: Refactor to remove requirement/execute split
+	}
+
 	function execute(
 		address msgSender,
 		RegisterType registerType,
@@ -35,43 +39,31 @@ contract RegisterSystem is System {
 			args,
 			(address, RegisterType, address, uint256)
 		);
-		// require(msg.sender == address(world), "system can only be called via World");
-		// require(
-		//   registerType == RegisterType.Component || registerType == RegisterType.System,
-		//   "invalid type"
-		// );
-		// require(id != 0, "invalid id");
-		// require(addr != address(0), "invalid address");
+		require(msg.sender == address(world), "system can only be called via World");
+		require(registerType == RegisterType.Component || registerType == RegisterType.System, "invalid type");
+		require(id != 0, "invalid id");
+		require(addr != address(0), "invalid address");
 
-		// IUint256Component registry = registerType == RegisterType.Component
-		// 	? components
-		// 	: IUint256Component(getAddressById(components, systemsComponentId));
-		// uint256 entity = addressToEntity(addr);
+		IUint256Component registry = registerType == RegisterType.Component
+			? components
+			: IUint256Component(getAddressById(components, systemsComponentId));
+		uint256 entity = addressToEntity(addr);
 
-		// require(!registry.has(entity), "entity already registered");
+		require(!registry.has(entity), "entity already registered");
 
-		// uint256[] memory entitiesWithId = registry.getEntitiesWithValue(id);
+		uint256[] memory entitiesWithId = registry.getEntitiesWithValue(id);
 
-		// require(
-		//   entitiesWithId.length == 0 ||
-		//     (entitiesWithId.length == 1 &&
-		//       IERC173(entityToAddress(entitiesWithId[0])).owner() == msgSender),
-		//   "id already registered and caller not owner"
-		// );
+		require(
+			entitiesWithId.length == 0 ||
+				(entitiesWithId.length == 1 && IERC173(entityToAddress(entitiesWithId[0])).owner() == msgSender),
+			"id already registered and caller not owner"
+		);
 
-		// if (entitiesWithId.length == 1) {
-		// 	// Remove previous system
-		// 	registry.remove(entitiesWithId[0]);
-		// }
-
-		// temp: filters out non essential component registry writes
-		if (id == componentsComponentId || id == systemsComponentId) {
-			IUint256Component registry = registerType == RegisterType.Component
-				? components
-				: IUint256Component(getAddressById(components, systemsComponentId));
-			uint256 entity = addressToEntity(addr);
-
-			registry.set(entity, id);
+		if (entitiesWithId.length == 1) {
+			// Remove previous system
+			registry.remove(entitiesWithId[0]);
 		}
+
+		registry.set(entity, id);
 	}
 }

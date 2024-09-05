@@ -19,99 +19,88 @@ import { RegisterSystem, ID as registerSystemId, RegisterType } from "./systems/
  * implementation of contract/client state sync.)
  */
 contract World is IWorld {
-  uint256 private nonce;
+	uint256 private nonce;
 
-  Uint256Component private _components;
-  Uint256Component private _systems;
-  RegisterSystem public register;
+	Uint256Component private _components;
+	Uint256Component private _systems;
+	RegisterSystem public register;
 
-  event ComponentValueSet(
-    uint256 indexed componentId,
-    address indexed component,
-    uint256 indexed entity,
-    bytes data
-  );
+	event ComponentValueSet(uint256 indexed componentId, address indexed component, uint256 indexed entity, bytes data);
 
-  event ComponentValueRemoved(
-    uint256 indexed componentId,
-    address indexed component,
-    uint256 indexed entity
-  );
+	event ComponentValueRemoved(uint256 indexed componentId, address indexed component, uint256 indexed entity);
 
-  constructor() {
-    _components = new Uint256Component(address(0), componentsComponentId);
-    _systems = new Uint256Component(address(0), systemsComponentId);
-    register = new RegisterSystem(this, address(_components));
-    _systems.authorizeWriter(address(register));
-    _components.authorizeWriter(address(register));
-  }
+	constructor() {
+		_components = new Uint256Component(address(0), componentsComponentId);
+		_systems = new Uint256Component(address(0), systemsComponentId);
+		register = new RegisterSystem(this, address(_components));
+		_systems.authorizeWriter(address(register));
+		_components.authorizeWriter(address(register));
+	}
 
-  /** @notice
-   * Initialize the World.
-   * Separated from the constructor to prevent circular dependencies.
-   */
-  function init() public {
-    _components.registerWorld(address(this));
-    _systems.registerWorld(address(this));
-    register.execute(
-      abi.encode(msg.sender, RegisterType.System, address(register), registerSystemId)
-    );
-  }
+	/** @notice
+	 * Initialize the World.
+	 * Separated from the constructor to prevent circular dependencies.
+	 */
+	function init() public {
+		_components.registerWorld(address(this));
+		_systems.registerWorld(address(this));
+		register.execute(abi.encode(msg.sender, RegisterType.System, address(register), registerSystemId));
+	}
 
-  /** @notice
-   * Get the component registry Uint256Component
-   * (mapping from component address to component id)
-   */
-  function components() public view returns (IUint256Component) {
-    return _components;
-  }
+	/** @notice
+	 * Get the component registry Uint256Component
+	 * (mapping from component address to component id)
+	 */
+	function components() public view returns (IUint256Component) {
+		return _components;
+	}
 
-  /** @notice
-   * Get the system registry Uint256Component
-   * (mapping from system address to system id)
-   */
-  function systems() public view returns (IUint256Component) {
-    return _systems;
-  }
+	/** @notice
+	 * Get the system registry Uint256Component
+	 * (mapping from system address to system id)
+	 */
+	function systems() public view returns (IUint256Component) {
+		return _systems;
+	}
 
-  /** @notice
-   * Register a new component in this World.
-   * ID must be unique.
-   */
-  function registerComponent(address componentAddr, uint256 id) public {
-    register.execute(abi.encode(msg.sender, RegisterType.Component, componentAddr, id));
-  }
+	/** @notice
+	 * Register a new component in this World.
+	 * ID must be unique.
+	 */
+	function registerComponent(address componentAddr, uint256 id) public {
+		register.execute(abi.encode(msg.sender, RegisterType.Component, componentAddr, id));
+	}
 
-  /** @notice
-   * Register a new system in this World.
-   * ID must be unique.
-   */
-  function registerSystem(address systemAddr, uint256 id) public {
-    register.execute(abi.encode(msg.sender, RegisterType.System, systemAddr, id));
-  }
+	/** @notice
+	 * Register a new system in this World.
+	 * ID must be unique.
+	 */
+	function registerSystem(address systemAddr, uint256 id) public {
+		register.execute(abi.encode(msg.sender, RegisterType.System, systemAddr, id));
+	}
 
-  /** @notice
-   * Register a component value update.
-   * Emits the `ComponentValueSet` event for clients to reconstruct the state.
-   */
-  function registerComponentValueSet(uint256 entity, bytes calldata data) public {
-    require(_components.has(addressToEntity(msg.sender)), "component not registered");
-    emit ComponentValueSet(getIdByAddress(_components, msg.sender), msg.sender, entity, data);
-  }
+	/** @notice
+	 * Register a component value update.
+	 * Emits the `ComponentValueSet` event for clients to reconstruct the state.
+	 */
+	function registerComponentValueSet(uint256 entity, bytes calldata data) public {
+		require(_components.has(addressToEntity(msg.sender)), "component not registered");
+		emit ComponentValueSet(getIdByAddress(_components, msg.sender), msg.sender, entity, data);
+	}
 
-  /** @notice
-   * Register a component value removal.
-   * Emits the `ComponentValueRemoved` event for clients to reconstruct the state.
-   */
-  function registerComponentValueRemoved(uint256 entity) public {
-    require(_components.has(addressToEntity(msg.sender)), "component not registered");
-    emit ComponentValueRemoved(getIdByAddress(_components, msg.sender), msg.sender, entity);
-  }
+	/** @notice
+	 * Register a component value removal.
+	 * Emits the `ComponentValueRemoved` event for clients to reconstruct the state.
+	 */
+	function registerComponentValueRemoved(uint256 entity) public {
+		require(_components.has(addressToEntity(msg.sender)), "component not registered");
+		emit ComponentValueRemoved(getIdByAddress(_components, msg.sender), msg.sender, entity);
+	}
 
-  /** @notice
-   * Get a unique entity ID.
-   */
-  function getUniqueEntityId() public returns (uint256) {
-    return uint256(keccak256(abi.encodePacked(++nonce)));
-  }
+	/** @notice
+	 * Get a unique entity ID.
+	 */
+	function getUniqueEntityId() public returns (uint256) {
+		return uint256(keccak256(abi.encodePacked(++nonce)));
+	}
 }
